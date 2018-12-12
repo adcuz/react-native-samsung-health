@@ -53,7 +53,7 @@ There are many ways to do this:
 
      <meta-data
        android:name="com.samsung.android.health.permission.read"
-       android:value="com.samsung.health.step_count;com.samsung.shealth.step_daily_trend;com.samsung.health.weight" />
+       android:value="com.samsung.health.exercise;com.samsung.health.weight;com.samsung.health.step_count;com.samsung.shealth.height;com.samsung.shealth.step_daily_trend;" />
      ```
 
 3. Simply `import/require` it by the name defined in your library's `package.json`:
