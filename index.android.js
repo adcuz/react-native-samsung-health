@@ -28,6 +28,18 @@ function buildDailySteps(data) {
   }));
 }
 
+function buildStepsDailyTend(data) {
+  return data.map((obj) => {
+    const { binning_data: hourly, count, day_time: startTime } = obj;
+
+    return {
+      hourly,
+      count,
+      startTime: new Date(startTime).toISOString(),
+    };
+  });
+}
+
 function buildDailyExercises(data) {
   return data.map((obj) => {
     const {
@@ -46,6 +58,16 @@ function buildDailyExercises(data) {
       distance,
       exerciseTypeName: RNSH_EXERCISE_TYPES[exerciseTypeCode],
       startTime: new Date(startTime).toISOString(),
+    };
+  });
+}
+
+function buildWeights(data) {
+  return data.map((obj) => {
+    const { start_time, weight } = obj;
+    return {
+      weight,
+      time: new Date(start_time).toISOString(),
     };
   });
 }
@@ -88,9 +110,7 @@ class RNSamsungHealth {
         const flattenResults = results
           .map(({ data }) => data)
           .reduce((acc, cur) => [...acc, ...cur], []);
-        const stepCountSamples = buildDailySteps(flattenResults);
-
-        callback(undefined, stepCountSamples);
+        callback(undefined, buildDailySteps(flattenResults));
       },
     );
   }
@@ -113,7 +133,7 @@ class RNSamsungHealth {
           .map(({ data }) => data)
           .reduce((acc, cur) => [...acc, ...cur], []);
 
-        callback(undefined, flattenResults);
+        callback(undefined, buildStepsDailyTend(flattenResults));
       },
     );
   }
@@ -135,9 +155,7 @@ class RNSamsungHealth {
         const flattenResults = results
           .map(({ data }) => data)
           .reduce((acc, cur) => [...acc, ...cur], []);
-        const exerciseSamples = buildDailyExercises(flattenResults);
-
-        callback(undefined, exerciseSamples);
+        callback(undefined, buildDailyExercises(flattenResults));
       },
     );
   }
@@ -158,10 +176,8 @@ class RNSamsungHealth {
         }
         const flattenResults = results
           .map(({ data }) => data)
-          .reduce((acc, cur) => [...acc, ...cur], [])
-          .map(({ start_time, weight }) => ({ time: start_time, weight }));
-        // const exerciseSamples = buildWeights(flattenResults);
-        callback(undefined, flattenResults);
+          .reduce((acc, cur) => [...acc, ...cur], []);
+        callback(undefined, buildWeights(flattenResults));
       },
     );
   }

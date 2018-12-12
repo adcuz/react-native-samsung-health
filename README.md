@@ -53,7 +53,7 @@ There are many ways to do this:
 
      <meta-data
        android:name="com.samsung.android.health.permission.read"
-       android:value="com.samsung.health.exercise;com.samsung.health.weight;com.samsung.health.step_count;com.samsung.shealth.height;com.samsung.shealth.step_daily_trend;" />
+       android:value="com.samsung.health.step_count;com.samsung.shealth.step_daily_trend;com.samsung.health.weight" />
      ```
 
 3. Simply `import/require` it by the name defined in your library's `package.json`:
@@ -109,7 +109,7 @@ SamsungHealth.getWeightSamples({}, (err, res) => { console.log(res) });
 
 ```
 [{
-    time:1544610309815 // UTC timestamp
+    time: "2018-12-12T00:00:00.000Z", // UTC timestamp
     weight: 65 // kilos
 }]
 ```
@@ -124,8 +124,9 @@ SamsungHealth.getStepsDailyTrend({}, (err, res) => { console.log(res) });
 
 ```
 [{
-    count:207 // steps
-    day_time:1544572800000 // UTC timestamp of the start of the day
+    hourly: [0, 20, 30, 0, ...] // An array of step counts per hour over 24 hours from startTime
+    count: 207, // steps
+    startTime: "2018-12-12T00:00:00.000Z" // UTC timestamp of the start of the day
 }]
 ```
 

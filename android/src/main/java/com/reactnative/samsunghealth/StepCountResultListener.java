@@ -4,11 +4,13 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Arguments;
 import com.samsung.android.sdk.healthdata.HealthConstants;
 import com.samsung.android.sdk.healthdata.HealthDataResolver.ReadResult;
+import com.samsung.android.sdk.healthdata.HealthDataUtil;
 import com.samsung.android.sdk.healthdata.HealthDevice;
 import com.samsung.android.sdk.healthdata.HealthDeviceManager;
 import com.samsung.android.sdk.healthdata.HealthResultHolder;
@@ -16,6 +18,7 @@ import com.samsung.android.sdk.healthdata.HealthResultHolder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class StepCountResultListener implements
         HealthResultHolder.ResultListener<ReadResult> {
@@ -114,10 +117,29 @@ public class StepCountResultListener implements
                         if (Arrays.asList(TIME_COLUMNS).contains(key)) {
                             type = Cursor.FIELD_TYPE_FLOAT;
                         }
-
                         switch (type) {
                             case Cursor.FIELD_TYPE_BLOB:
-
+                                List<StepBinningData> binningDataList = HealthDataUtil.getStructuredDataList(c.getBlob(col), StepBinningData.class);
+                                WritableArray bucketedData = Arguments.createArray();
+                                Integer[] hourValues = new Integer[24];
+                                int hour = 0;
+                                int hourSlice = 0;
+                                for (StepBinningData item : binningDataList) {
+                                    if (hourValues[hour]==null) {
+                                        hourValues[hour] = 0;
+                                    }
+                                    hourValues[hour] = hourValues[hour] + item.count;
+                                    hourSlice++;
+                                    if (hourSlice > 0 && (hourSlice % 6) == 0) {
+                                        hour++;
+                                    }
+                                }
+                                Integer h = 0;
+                                while (h < 24) {
+                                    bucketedData.pushInt(hourValues[h]);
+                                    h++;
+                                }
+                                map.putArray(key, bucketedData);
                                 break;
                             case Cursor.FIELD_TYPE_FLOAT:
                                 map.putDouble(key, c.getDouble(col));
@@ -160,6 +182,20 @@ public class StepCountResultListener implements
         }
 
         mSuccessCallback.invoke(results);
+    }
+
+    public static class StepBinningData {
+        public int count;
+        public float calorie;
+        public float distance;
+        public float speed;
+
+        public StepBinningData(int count, float calorie, float distance, float speed) {
+            this.count = count;
+            this.calorie = calorie;
+            this.distance = distance;
+            this.speed = speed;
+        }
     }
 }
 
