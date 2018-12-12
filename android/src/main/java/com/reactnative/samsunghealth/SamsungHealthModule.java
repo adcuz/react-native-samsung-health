@@ -190,7 +190,7 @@ public class SamsungHealthModule extends ReactContextBaseJavaModule implements
             Filter.greaterThanEquals(HealthConstants.StepCount.START_TIME, (long)startDate),
             Filter.lessThanEquals(HealthConstants.StepCount.START_TIME, (long)endDate)
         );
-       
+
         HealthDataResolver.ReadRequest request = new ReadRequest.Builder()
             .setDataType(HealthConstants.StepCount.HEALTH_DATA_TYPE) //  "com.samsung.health.step_count"
             .setProperties(new String[]{
@@ -210,7 +210,7 @@ public class SamsungHealthModule extends ReactContextBaseJavaModule implements
             error.invoke("Getting step count fails.");
         }
     }
-    
+
     @ReactMethod
     public void readExercises(double startDate, double endDate, Callback error, Callback success) {
         HealthDataResolver resolver = new HealthDataResolver(mStore, null);
@@ -222,11 +222,13 @@ public class SamsungHealthModule extends ReactContextBaseJavaModule implements
             Filter.greaterThanEquals(HealthConstants.StepCount.START_TIME, (long)startDate),
             Filter.lessThanEquals(HealthConstants.StepCount.START_TIME, (long)endDate)
         );
-       
+
         HealthDataResolver.ReadRequest request = new ReadRequest.Builder()
             .setDataType(HealthConstants.Exercise.HEALTH_DATA_TYPE) //  "com.samsung.health.step_count"
             .setProperties(new String[]{
                 HealthConstants.Exercise.DURATION,    // "Duration"
+                HealthConstants.Exercise.DISTANCE, // Distance
+                HealthConstants.Exercise.CALORIE, // Calories
                 HealthConstants.Exercise.EXERCISE_TYPE,     // "Type"
                 HealthConstants.Exercise.EXERCISE_CUSTOM_TYPE,     // "Custom type"
                 HealthConstants.Exercise.START_TIME,  // SessionMeasurement: "start_time"
@@ -270,6 +272,39 @@ public class SamsungHealthModule extends ReactContextBaseJavaModule implements
             Log.e(REACT_MODULE, e.getClass().getName() + " - " + e.getMessage());
             Log.e(REACT_MODULE, "Getting weight fails.");
             error.invoke("Getting weight fails.");
+        }
+    }
+
+    // Read the today's step count on demand
+    // https://img-developer.samsung.com/health/daily_step_count_trend.html
+    @ReactMethod
+    public void readStepDailyTrendCount(double startDate, double endDate, Callback error, Callback success) {
+        HealthDataResolver resolver = new HealthDataResolver(mStore, null);
+
+        Log.d(REACT_MODULE, "startDate:" + Long.toString((long)startDate));
+        Log.d(REACT_MODULE, "endDate:" + Long.toString((long)endDate));
+
+        Filter filter = Filter.and(
+            Filter.greaterThanEquals(SamsungHealthModule.DAY_TIME, (long)startDate),
+            Filter.lessThanEquals(SamsungHealthModule.DAY_TIME, (long)endDate)
+        );
+        HealthDataResolver.ReadRequest request = new ReadRequest.Builder()
+                .setDataType(SamsungHealthModule.STEP_DAILY_TREND_TYPE) // "com.samsung.shealth.step_daily_trend"
+                .setProperties(new String[]{
+                        HealthConstants.StepCount.COUNT,       // "count"
+                        "binning_data",
+                        SamsungHealthModule.DAY_TIME,          // "day_time"
+                        HealthConstants.StepCount.DEVICE_UUID  // Common: "deviceuuid"
+                })
+                .setFilter(filter)
+                .build();
+
+        try {
+            resolver.read(request).setResultListener(new StepCountResultListener(this, error, success));
+        } catch (Exception e) {
+            Log.e(REACT_MODULE, e.getClass().getName() + " - " + e.getMessage());
+            Log.e(REACT_MODULE, "Getting daily step trend fails.");
+            error.invoke("Getting daily step trend fails.");
         }
     }
 }
